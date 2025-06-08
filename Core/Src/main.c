@@ -24,11 +24,11 @@
 #include "ds18b20.h"
 #include "string.h"
 #include <stdio.h>
-#include "fonts.h"
-#include "ssd1306.h"
+// OLED display includes (currently disabled)
+// #include "fonts.h"
+// #include "ssd1306.h"
 
 I2C_HandleTypeDef hi2c1;
-
 TIM_HandleTypeDef htim1;
 
 void SystemClock_Config(void);
@@ -45,36 +45,42 @@ int main(void)
   MX_TIM1_Init();
   MX_I2C1_Init();
 
-  SSD1306_Init();
+  // Initialize OLED display (disabled)
+  // SSD1306_Init();
 
+  // Initialize temperature sensor
   DS18B20_Init(DS18B20_Resolution_12bits);
   HAL_GPIO_WritePin(TEST_Pin_GPIO_Port, TEST_Pin_Pin, 0);
 
   while (1)
   {
-	  DS18B20_ReadAll();
-	  HAL_GPIO_WritePin(TEST_Pin_GPIO_Port, TEST_Pin_Pin, 1);
+      // Read temperature from all sensors
+      DS18B20_ReadAll();
+      HAL_GPIO_WritePin(TEST_Pin_GPIO_Port, TEST_Pin_Pin, 1);
       DS18B20_StartAll();
       HAL_GPIO_WritePin(TEST_Pin_GPIO_Port, TEST_Pin_Pin, 0);
-		uint8_t ROM_tmp[8];
-		uint8_t i;
+      uint8_t ROM_tmp[8];
+      uint8_t i;
 
-	for(i = 0; i < DS18B20_Quantity(); i++)
-		{
-			if(DS18B20_GetTemperature(i, &temperature))
-			{
-				DS18B20_GetROM(i, ROM_tmp);
-				memset(string, 0, sizeof(string));
-				sprintf(string, "%.2f C", temperature);
-				SSD1306_GotoXY (20, 0);
-				SSD1306_Puts ("Temperature", &Font_7x10, 1);
-				SSD1306_GotoXY (25, 30);
-				SSD1306_Puts (string, &Font_11x18, 1);
-				SSD1306_UpdateScreen();
-			}
-		}
-		HAL_Delay(1000);
-		HAL_GPIO_TogglePin(LED_Pin_GPIO_Port, LED_Pin_Pin);
+      // Process temperature readings
+      for(i = 0; i < DS18B20_Quantity(); i++) {
+          if(DS18B20_GetTemperature(i, &temperature)) {
+              DS18B20_GetROM(i, ROM_tmp);
+
+              // Water pump control logic
+              // Turn pump ON if temperature exceeds 25.0°C
+              // Turn pump OFF if temperature is below or equal to 25.0°C
+              if (temperature > 55.0) {
+                  HAL_GPIO_WritePin(PUMP_Pin_GPIO_Port, PUMP_Pin, GPIO_PIN_SET);  // Turn pump on
+              } else {
+                  HAL_GPIO_WritePin(PUMP_Pin_GPIO_Port, PUMP_Pin, GPIO_PIN_RESET); // Turn pump off
+              }
+              
+              // Status indicator
+              HAL_GPIO_TogglePin(LED_Pin_GPIO_Port, LED_Pin_Pin);
+          }
+      }
+      HAL_Delay(1000); // Wait 1 second before next reading
   }
 }
 

@@ -63,6 +63,8 @@ void Error_Handler(void);
 #define TEST_Pin_GPIO_Port GPIOA
 #define DS18B20_Pin_Pin GPIO_PIN_1
 #define DS18B20_Pin_GPIO_Port GPIOA
+#define PUMP_Pin GPIO_PIN_2 /* додано порти для помпи*/
+#define PUMP_Pin_GPIO_Port GPIOA /* додано порти для помпи*/
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
